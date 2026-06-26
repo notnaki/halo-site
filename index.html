@@ -10,7 +10,24 @@
 </head>
 <body class="home">
   <main class="hero">
-    <img class="mark" src="assets/vesta-mark.png" alt="Vesta" width="128" height="128">
+    <svg class="mark" viewBox="0 0 512 512" width="128" height="128" role="img" aria-label="Vesta">
+      <defs>
+        <linearGradient id="tile" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1c1d20"/><stop offset="1" stop-color="#141517"/></linearGradient>
+        <!-- mosaic pixelation: sample the flame on a grid and dilate each sample into a block.
+             JS drives the cell size (pxCell/pxFlood/pxMorph) — big blocks at full corruption, shrinking to clean. -->
+        <filter id="px" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="120" y="100" width="280" height="320">
+          <feFlood id="pxFlood" x="120" y="100" width="2" height="2" flood-color="#fff" result="d"/>
+          <feComposite id="pxCell" in="d" width="8" height="8"/>
+          <feTile result="a"/>
+          <feComposite in="SourceGraphic" in2="a" operator="in"/>
+          <feMorphology id="pxMorph" operator="dilate" radius="4"/>
+        </filter>
+      </defs>
+      <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#tile)"/>
+      <rect x="16.5" y="16.5" width="479" height="479" rx="107.5" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
+      <path id="flame" d="M188 150 C 196 232 236 252 252 250 C 232 220 236 168 256 128 C 300 196 322 232 322 282 L256 392 L188 150 Z" fill="#ffffff"/>
+    </svg>
     <h1 class="wordmark" aria-label="Vesta"><span>V</span><span>e</span><span>s</span><span>t</span><span>a</span></h1>
     <p class="lede">A native&nbsp;macOS terminal on <a href="https://ghostty.org">libghostty</a> —
       GPU-rendered, scriptable by agents, a git&#8209;worktree session per task.</p>
@@ -27,24 +44,51 @@
     // landing: letters spin through Redaction grades, then settle left-to-right (slot-machine feel)
     (function () {
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      var grades = ["Redaction 10","Redaction 20","Redaction 35","Redaction 50","Redaction 70","Redaction 100"];
+      var gradeNums = [10, 20, 35, 50, 70, 100];
+      var grades = gradeNums.map(function (n) { return "Redaction " + n; });
       var letters = document.querySelectorAll(".wordmark span");
       if (!letters.length) return;
       function fam(g) { return '"' + g + '", Georgia, serif'; }
+      // corruptness → color: grade 10 ≈ white, grade 100 = full pink (lerp white→#ff3d7a)
+      function corruptColor(n) {
+        var t = (n - 10) / 90;
+        return "rgb(255," + Math.round(255 - t * 194) + "," + Math.round(255 - t * 133) + ")";
+      }
 
+      var flame = document.getElementById("flame");
+      var pxFlood = document.getElementById("pxFlood"), pxCell = document.getElementById("pxCell"), pxMorph = document.getElementById("pxMorph");
+      var totalMs = 850 + letters.length * 200;
+      // set the mosaic cell size (userspace units in the 512 viewBox); 0 ≈ clean
+      function setPixel(S) {
+        // tile origin is the filter region origin (120,100); keep the sample dot there and grow the cell
+        pxFlood.setAttribute("width", Math.max(1, 0.3 * S).toFixed(1)); pxFlood.setAttribute("height", Math.max(1, 0.3 * S).toFixed(1));
+        pxCell.setAttribute("width", S.toFixed(1)); pxCell.setAttribute("height", S.toFixed(1));
+        pxMorph.setAttribute("radius", (0.55 * S).toFixed(1));
+      }
       function run() {
         var locked = [], step = 0;
+        if (flame) flame.setAttribute("filter", "url(#px)");
         var tick = setInterval(function () {
           step++;
           letters.forEach(function (el, i) {
             if (locked[i]) return;
-            el.style.fontFamily = fam(grades[(step + i) % grades.length]); // sequential, not random
+            var idx = (step + i) % grades.length; // sequential, not random
+            el.style.fontFamily = fam(grades[idx]);
+            el.style.color = corruptColor(gradeNums[idx]); // pinker the more redacted, white when pristine
           });
+          var c = Math.max(0, 1 - (step * 90) / totalMs);   // corruptness, 1→0 over the sequence
+          // the V flame flickers through the same white→pink range, in sync
+          if (flame) flame.setAttribute("fill", corruptColor(gradeNums[step % gradeNums.length]));
+          // …and pixelates: big blocks while corrupt, shrinking to crisp as it settles
+          setPixel(2 + 46 * c);
         }, 90);
         letters.forEach(function (el, i) {
-          setTimeout(function () { locked[i] = true; el.style.fontFamily = ""; }, 850 + i * 200);
+          setTimeout(function () { locked[i] = true; el.style.fontFamily = ""; el.style.color = ""; }, 850 + i * 200);
         });
-        setTimeout(function () { clearInterval(tick); }, 850 + letters.length * 200);
+        setTimeout(function () {
+          clearInterval(tick);
+          if (flame) { flame.setAttribute("fill", "#ffffff"); flame.removeAttribute("filter"); }
+        }, totalMs);
       }
 
       // preload every grade first so the spin never flashes the Georgia fallback

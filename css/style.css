@@ -94,7 +94,7 @@ a:hover{ color:var(--accent); }
 .toc .grp-t{ color:var(--faint); text-transform:uppercase; letter-spacing:.08em; font-size:10.5px; margin-top:16px; }
 .toc .grp-t:first-child{ margin-top:0; }
 
-.doc{ min-width:0; }  /* grid child defaults to min-width:auto → a wide <pre> stretches the track past the viewport; this lets pre's overflow-x:auto scroll instead */
+.doc{ min-width:0; }  /* grid child defaults to min-width:auto → a wide <pre> would stretch the track past the viewport; this lets pre's own overflow-x:auto scroll instead */
 .doc h1{ font-family:"Redaction",serif; font-weight:400; font-size:clamp(40px,7vw,64px); margin:0 0 8px; }
 .doc .sub{ color:var(--muted); max-width:62ch; margin:0 0 40px; }
 .doc section{ margin-bottom:56px; scroll-margin-top:84px; }
@@ -107,12 +107,12 @@ a:hover{ color:var(--accent); }
 .tbl{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:13px; }
 .tbl th{ text-align:left; color:var(--faint); font-weight:400; text-transform:uppercase; letter-spacing:.06em; font-size:10.5px; padding:0 16px 10px 0; border-bottom:1px solid var(--line); }
 .tbl td{ padding:11px 16px 11px 0; border-bottom:1px solid var(--line); vertical-align:top; }
-.tbl td.k{ color:var(--accent); white-space:nowrap; }
+.tbl td.k{ color:var(--accent); overflow-wrap:break-word; }  /* wrap long multi-method keys instead of stretching the table; single-token keys have no break points so they stay on one line */
 .tbl td.def{ color:var(--muted); white-space:nowrap; }
 .tbl td.desc{ color:#c1c2c4; font-family:var(--sans); font-size:13.5px; }
 
 code{ font-family:var(--mono); font-size:.88em; color:#dfe0e2; background:rgba(255,255,255,.05); padding:.12em .4em; border-radius:4px; }
-pre{ font-family:var(--mono); font-size:13px; line-height:1.7; color:#d6d7d9; background:#111114; border:1px solid var(--line); border-radius:10px; padding:18px 20px; overflow-x:auto; }
+pre{ font-family:var(--mono); font-size:13px; line-height:1.7; color:#d6d7d9; background:#111114; border:1px solid var(--line); border-radius:10px; padding:18px 20px; white-space:pre-wrap; overflow-wrap:break-word; }  /* wrap long Lua lines (no horizontal scroll) so the page never overflows on narrow screens */
 pre .c{ color:var(--faint); }       /* comment */
 pre .a{ color:var(--accent); }       /* verb / accent */
 pre .s{ color:#c3a6e6; }             /* string literal */
