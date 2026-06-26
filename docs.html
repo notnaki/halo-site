@@ -67,6 +67,7 @@
               <tr><td class="k">halo-prefix</td><td class="def">ctrl+b</td><td class="desc">tmux-style prefix key. Empty value disables prefix mode.</td></tr>
               <tr><td class="k">halo-prefix-bind</td><td class="def">—</td><td class="desc">Rebind a prefix key: <code>&lt;key&gt;:&lt;action&gt;</code>, comma-separated for multiple, e.g. <code>v:split-vertical</code>. Actions: <code>split-vertical</code>, <code>split-horizontal</code>, <code>focus-left/down/up/right</code>, <code>zoom</code>, <code>new-session</code>, <code>next-session</code>, <code>prev-session</code>, <code>rename</code>, <code>detach</code>, <code>kill</code>.</td></tr>
               <tr><td class="k">halo-persist</td><td class="def">on</td><td class="desc">Run sessions through the background daemon so shells survive Halo quitting. Set <code>false</code> for plain in-process shells (no persistence).</td></tr>
+              <tr><td class="k">halo-persist-scrollback</td><td class="def">off</td><td class="desc">Mirror scrollback to disk so it survives a daemon restart. <strong>Off by default</strong> — terminal output can contain passwords/tokens; enable only if you accept on-disk persistence.</td></tr>
             </tbody>
           </table>
         </section>
